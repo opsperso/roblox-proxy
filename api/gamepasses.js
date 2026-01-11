@@ -1,14 +1,17 @@
 export default async function handler(req, res) {
+  // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
+  // Gère les requêtes OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
   
   const { userId } = req.query;
   
+  // Validation du userId
   if (!userId || isNaN(userId)) {
     return res.status(400).json({
       success: false,
@@ -18,9 +21,11 @@ export default async function handler(req, res) {
   
   try {
     const gamepasses = [];
-    const gamepassIds = new Set();
+    const gamepassIds = new Set(); // Évite les doublons
     
-    // MÉTHODE 1 : API Catalog avec limite correcte (30 max)
+    // ============================================
+    // MÉTHODE 1 : API Catalog (la plus rapide)
+    // ============================================
     try {
       const catalogUrl = `https://catalog.roblox.com/v1/search/items/details?Category=11&CreatorTargetId=${userId}&CreatorType=1&Limit=30`;
       const catalogResponse = await fetch(catalogUrl);
@@ -46,7 +51,9 @@ export default async function handler(req, res) {
       console.error('Erreur Catalog API:', err.message);
     }
     
-    // MÉTHODE 2 : Via les jeux (si méthode 1 échoue)
+    // ============================================
+    // MÉTHODE 2 : Via les jeux du créateur
+    // ============================================
     if (gamepasses.length === 0) {
       const gamesUrl = `https://games.roblox.com/v2/users/${userId}/games?accessFilter=2&limit=50&sortOrder=Asc`;
       const gamesResponse = await fetch(gamesUrl);
@@ -81,15 +88,18 @@ export default async function handler(req, res) {
                 }
               }
             } catch (err) {
-              console.error(`Erreur pour universeId ${universeId}:`, err.message);
+              // FIX ICI : Erreur de syntaxe corrigée
+              console.error('Erreur pour universeId', universeId, ':', err.message);
             }
             
+            // Petit délai pour éviter le rate limiting
             await new Promise(resolve => setTimeout(resolve, 150));
           }
         }
       }
     }
     
+    // Retourne les résultats
     return res.status(200).json({
       success: true,
       gamepasses: gamepasses,
