@@ -18,11 +18,11 @@ export default async function handler(req, res) {
   
   try {
     const gamepasses = [];
-    const gamepassIds = new Set(); // Pour éviter les doublons
+    const gamepassIds = new Set();
     
-    // MÉTHODE 1 : Via l'API Catalog (la plus fiable pour les gamepasses créés par l'utilisateur)
+    // MÉTHODE 1 : API Catalog avec limite correcte (30 max)
     try {
-      const catalogUrl = `https://catalog.roblox.com/v1/search/items/details?Category=11&CreatorTargetId=${userId}&CreatorType=1&Limit=100`;
+      const catalogUrl = `https://catalog.roblox.com/v1/search/items/details?Category=11&CreatorTargetId=${userId}&CreatorType=1&Limit=30`;
       const catalogResponse = await fetch(catalogUrl);
       
       if (catalogResponse.ok) {
@@ -35,8 +35,7 @@ export default async function handler(req, res) {
                 Id: item.id,
                 Name: item.name || 'Gamepass',
                 Price: item.price,
-                IconImageAssetId: item.iconImageAssetId || 0,
-                GameName: item.creatorName || 'Unknown'
+                IconImageAssetId: item.iconImageAssetId || 0
               });
               gamepassIds.add(item.id);
             }
@@ -47,7 +46,7 @@ export default async function handler(req, res) {
       console.error('Erreur Catalog API:', err.message);
     }
     
-    // MÉTHODE 2 : Via les jeux (backup si la méthode 1 échoue)
+    // MÉTHODE 2 : Via les jeux (si méthode 1 échoue)
     if (gamepasses.length === 0) {
       const gamesUrl = `https://games.roblox.com/v2/users/${userId}/games?accessFilter=2&limit=50&sortOrder=Asc`;
       const gamesResponse = await fetch(gamesUrl);
@@ -58,9 +57,7 @@ export default async function handler(req, res) {
         if (gamesData.data && gamesData.data.length > 0) {
           for (const game of gamesData.data) {
             const universeId = game.id;
-            const placeId = game.rootPlace?.id;
             
-            // Essayer avec Universe ID
             try {
               const passUrl = `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`;
               const passResponse = await fetch(passUrl);
@@ -85,35 +82,6 @@ export default async function handler(req, res) {
               }
             } catch (err) {
               console.error(`Erreur pour universeId ${universeId}:`, err.message);
-            }
-            
-            // Si échec avec Universe ID, essayer avec Place ID
-            if (placeId) {
-              try {
-                const passUrl2 = `https://games.roblox.com/v1/games/${placeId}/game-passes?limit=100&sortOrder=Asc`;
-                const passResponse2 = await fetch(passUrl2);
-                
-                if (passResponse2.ok) {
-                  const passData2 = await passResponse2.json();
-                  
-                  if (passData2.data && passData2.data.length > 0) {
-                    for (const pass of passData2.data) {
-                      if (pass.price && pass.price > 0 && !gamepassIds.has(pass.id)) {
-                        gamepasses.push({
-                          Id: pass.id,
-                          Name: pass.name,
-                          Price: pass.price,
-                          IconImageAssetId: pass.iconImageAssetId || 0,
-                          GameName: game.name
-                        });
-                        gamepassIds.add(pass.id);
-                      }
-                    }
-                  }
-                }
-              } catch (err) {
-                console.error(`Erreur pour placeId ${placeId}:`, err.message);
-              }
             }
             
             await new Promise(resolve => setTimeout(resolve, 150));
