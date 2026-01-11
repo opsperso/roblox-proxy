@@ -31,7 +31,12 @@ export default async function handler(req, res) {
     try {
       console.log('📡 Méthode 1 : Jeux publics');
       const publicGamesUrl = `https://games.roblox.com/v2/users/${userId}/games?accessFilter=2&limit=50&sortOrder=Asc`;
-      const publicResponse = await fetch(publicGamesUrl);
+      const publicResponse = await fetch(publicGamesUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json'
+        }
+      });
       
       if (publicResponse.ok) {
         const publicData = await publicResponse.json();
@@ -53,7 +58,12 @@ export default async function handler(req, res) {
     try {
       console.log('📡 Méthode 2 : Tous les jeux (y compris privés)');
       const allGamesUrl = `https://games.roblox.com/v2/users/${userId}/games?accessFilter=1&limit=50&sortOrder=Asc`;
-      const allResponse = await fetch(allGamesUrl);
+      const allResponse = await fetch(allGamesUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json'
+        }
+      });
       
       if (allResponse.ok) {
         const allData = await allResponse.json();
@@ -75,7 +85,12 @@ export default async function handler(req, res) {
     try {
       console.log('📡 Méthode 3 : Catalog API');
       const catalogUrl = `https://catalog.roblox.com/v1/search/items/details?Category=11&CreatorTargetId=${userId}&CreatorType=1&Limit=30`;
-      const catalogResponse = await fetch(catalogUrl);
+      const catalogResponse = await fetch(catalogUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json'
+        }
+      });
       
       if (catalogResponse.ok) {
         const catalogData = await catalogResponse.json();
@@ -106,7 +121,12 @@ export default async function handler(req, res) {
     try {
       console.log('📡 Méthode 4 : Via Badges');
       const badgesUrl = `https://badges.roblox.com/v1/users/${userId}/badges?limit=100&sortOrder=Asc`;
-      const badgesResponse = await fetch(badgesUrl);
+      const badgesResponse = await fetch(badgesUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json'
+        }
+      });
       
       if (badgesResponse.ok) {
         const badgesData = await badgesResponse.json();
@@ -127,7 +147,12 @@ export default async function handler(req, res) {
           for (const universeId of universeIds) {
             try {
               const passUrl = `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`;
-              const passResponse = await fetch(passUrl);
+              const passResponse = await fetch(passUrl, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                  'Accept': 'application/json'
+                }
+              });
               
               if (passResponse.ok) {
                 const passData = await passResponse.json();
@@ -190,7 +215,12 @@ async function scanGameForPasses(game, gamepasses, gamepassIds) {
   
   try {
     const passUrl = `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`;
-    const passResponse = await fetch(passUrl);
+    const passResponse = await fetch(passUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json'
+      }
+    });
     
     if (passResponse.ok) {
       const passData = await passResponse.json();
