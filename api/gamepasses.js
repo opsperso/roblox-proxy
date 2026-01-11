@@ -18,60 +18,107 @@ export default async function handler(req, res) {
   
   try {
     const gamepasses = [];
+    const gamepassIds = new Set(); // Pour éviter les doublons
     
-    // ÉTAPE 1 : Récupérer les jeux du joueur
-    const gamesUrl = `https://games.roblox.com/v2/users/${userId}/games?accessFilter=2&limit=50&sortOrder=Asc`;
-    const gamesResponse = await fetch(gamesUrl);
-    
-    if (!gamesResponse.ok) {
-      throw new Error(`Erreur API jeux: ${gamesResponse.status}`);
-    }
-    
-    const gamesData = await gamesResponse.json();
-    
-    if (!gamesData.data || gamesData.data.length === 0) {
-      return res.status(200).json({
-        success: true,
-        gamepasses: [],
-        message: 'Aucun jeu public trouvé',
-        count: 0,
-        userId: userId
-      });
-    }
-    
-    // ÉTAPE 2 : Pour chaque jeu, récupérer les gamepasses
-    for (const game of gamesData.data) {
-      const universeId = game.id;
+    // MÉTHODE 1 : Via l'API Catalog (la plus fiable pour les gamepasses créés par l'utilisateur)
+    try {
+      const catalogUrl = `https://catalog.roblox.com/v1/search/items/details?Category=11&CreatorTargetId=${userId}&CreatorType=1&Limit=100`;
+      const catalogResponse = await fetch(catalogUrl);
       
-      try {
-        // Méthode 1 : API game-passes (la plus fiable)
-        const passUrl = `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`;
-        const passResponse = await fetch(passUrl);
+      if (catalogResponse.ok) {
+        const catalogData = await catalogResponse.json();
         
-        if (passResponse.ok) {
-          const passData = await passResponse.json();
-          
-          if (passData.data && passData.data.length > 0) {
-            for (const pass of passData.data) {
-              // Garder tous les gamepasses actifs avec un prix
-              if (pass.price && pass.price > 0) {
-                gamepasses.push({
-                  Id: pass.id,
-                  Name: pass.name,
-                  Price: pass.price,
-                  IconImageAssetId: pass.iconImageAssetId || 0,
-                  GameName: game.name
-                });
-              }
+        if (catalogData.data && catalogData.data.length > 0) {
+          for (const item of catalogData.data) {
+            if (item.price && item.price > 0 && !gamepassIds.has(item.id)) {
+              gamepasses.push({
+                Id: item.id,
+                Name: item.name || 'Gamepass',
+                Price: item.price,
+                IconImageAssetId: item.iconImageAssetId || 0,
+                GameName: item.creatorName || 'Unknown'
+              });
+              gamepassIds.add(item.id);
             }
           }
         }
+      }
+    } catch (err) {
+      console.error('Erreur Catalog API:', err.message);
+    }
+    
+    // MÉTHODE 2 : Via les jeux (backup si la méthode 1 échoue)
+    if (gamepasses.length === 0) {
+      const gamesUrl = `https://games.roblox.com/v2/users/${userId}/games?accessFilter=2&limit=50&sortOrder=Asc`;
+      const gamesResponse = await fetch(gamesUrl);
+      
+      if (gamesResponse.ok) {
+        const gamesData = await gamesResponse.json();
         
-        // Petit délai pour éviter le rate limit
-        await new Promise(resolve => setTimeout(resolve, 150));
-        
-      } catch (err) {
-        console.error(`Erreur pour jeu ${universeId}:`, err.message);
+        if (gamesData.data && gamesData.data.length > 0) {
+          for (const game of gamesData.data) {
+            const universeId = game.id;
+            const placeId = game.rootPlace?.id;
+            
+            // Essayer avec Universe ID
+            try {
+              const passUrl = `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`;
+              const passResponse = await fetch(passUrl);
+              
+              if (passResponse.ok) {
+                const passData = await passResponse.json();
+                
+                if (passData.data && passData.data.length > 0) {
+                  for (const pass of passData.data) {
+                    if (pass.price && pass.price > 0 && !gamepassIds.has(pass.id)) {
+                      gamepasses.push({
+                        Id: pass.id,
+                        Name: pass.name,
+                        Price: pass.price,
+                        IconImageAssetId: pass.iconImageAssetId || 0,
+                        GameName: game.name
+                      });
+                      gamepassIds.add(pass.id);
+                    }
+                  }
+                }
+              }
+            } catch (err) {
+              console.error(`Erreur pour universeId ${universeId}:`, err.message);
+            }
+            
+            // Si échec avec Universe ID, essayer avec Place ID
+            if (placeId) {
+              try {
+                const passUrl2 = `https://games.roblox.com/v1/games/${placeId}/game-passes?limit=100&sortOrder=Asc`;
+                const passResponse2 = await fetch(passUrl2);
+                
+                if (passResponse2.ok) {
+                  const passData2 = await passResponse2.json();
+                  
+                  if (passData2.data && passData2.data.length > 0) {
+                    for (const pass of passData2.data) {
+                      if (pass.price && pass.price > 0 && !gamepassIds.has(pass.id)) {
+                        gamepasses.push({
+                          Id: pass.id,
+                          Name: pass.name,
+                          Price: pass.price,
+                          IconImageAssetId: pass.iconImageAssetId || 0,
+                          GameName: game.name
+                        });
+                        gamepassIds.add(pass.id);
+                      }
+                    }
+                  }
+                }
+              } catch (err) {
+                console.error(`Erreur pour placeId ${placeId}:`, err.message);
+              }
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 150));
+          }
+        }
       }
     }
     
