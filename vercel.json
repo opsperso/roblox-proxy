@@ -1,0 +1,93 @@
+{
+  "version": 2
+}
+```
+
+5. Cliquez sur **"Commit new file"**
+
+✅ **Fichier `vercel.json` créé à la racine !**
+
+---
+
+## **VÉRIFICATION : Votre repo doit maintenant contenir :**
+```
+roblox-proxy/
+├── api/
+│   └── gamepasses.js
+├── package.json
+├── vercel.json
+└── README.md
+```
+
+Si c'est le cas, **PARFAIT !** On passe à Vercel ! 🎉
+
+---
+
+# 🚀 PARTIE 2 : CRÉER LE PROJET SUR VERCEL
+
+## **ÉTAPE 5 : Se connecter à Vercel**
+
+1. Allez sur : **https://vercel.com**
+2. Cliquez sur **"Sign Up"** (si nouveau) ou **"Login"** (si compte existant)
+3. Choisissez **"Continue with GitHub"**
+4. Autorisez Vercel à accéder à votre GitHub
+
+✅ **Vous êtes connecté à Vercel !**
+
+---
+
+## **ÉTAPE 6 : Importer votre repository**
+
+1. Sur le dashboard Vercel, cliquez sur **"Add New..."** en haut à droite
+2. Sélectionnez **"Project"**
+3. Vous verrez la liste de vos repositories GitHub
+4. Trouvez **"roblox-proxy"** dans la liste
+5. Cliquez sur **"Import"** à côté
+
+---
+
+## **ÉTAPE 7 : Configurer le projet**
+
+1. Vercel va vous montrer une page de configuration
+2. **Laissez TOUT par défaut** :
+   - Project Name : `roblox-proxy` (ou laissez ce que Vercel propose)
+   - Framework Preset : `Other`
+   - Root Directory : `./`
+   - Build Command : (vide)
+   - Output Directory : (vide)
+3. Cliquez sur **"Deploy"** (gros bouton bleu)
+
+---
+
+## **ÉTAPE 8 : Attendre le déploiement**
+
+1. Vercel va afficher un écran avec des animations
+2. Attendez **30 secondes à 1 minute**...
+3. Vous verrez **"Congratulations! 🎉"** avec des confettis
+
+✅ **Votre proxy est déployé !**
+
+---
+
+## **ÉTAPE 9 : Récupérer votre URL**
+
+1. Sur la page de félicitations, vous verrez une URL comme :
+```
+   https://roblox-proxy-abc123.vercel.app
+```
+   Ou quelque chose comme :
+```
+   https://roblox-proxy-git-main-votre-nom.vercel.app
+```
+2. **COPIEZ CETTE URL COMPLÈTE**
+3. Notez-la quelque part (Bloc-notes, etc.)
+
+---
+
+## **ÉTAPE 10 : Tester votre proxy**
+
+1. Ouvrez un **nouvel onglet** dans votre navigateur
+2. Collez votre URL et ajoutez `/api/gamepasses?userId=1` à la fin
+3. Exemple complet :
+```
+   https://roblox-proxy-abc123.vercel.app/api/gamepasses?userId=1
