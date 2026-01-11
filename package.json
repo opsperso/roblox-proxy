@@ -3,3 +3,29 @@
   "version": "1.0.0",
   "type": "module"
 }
+```
+
+3. Cliquez sur **"Commit changes"**
+
+---
+
+## ⏭️ **ÉTAPE 4 : Redéploiement (AUTOMATIQUE)** ✨
+
+**Vous n'avez RIEN à faire !**
+
+Dès que vous faites des modifications sur GitHub, **Vercel redéploie automatiquement** votre projet.
+
+Pour vérifier :
+1. Allez sur votre dashboard Vercel : https://vercel.com/dashboard
+2. Cliquez sur votre projet `roblox-proxy`
+3. Vous verrez un nouveau déploiement en cours avec une petite animation 🔄
+
+Attendez que le déploiement soit **"Ready"** (vert ✅)
+
+---
+
+## ⏭️ **ÉTAPE 5 : Test (À FAIRE APRÈS LE DÉPLOIEMENT)**
+
+Une fois le déploiement terminé (statut **Ready** ✅ sur Vercel), testez dans votre **navigateur** :
+```
+https://roblox-proxy-3ql6sk6ld-opss-projects-301b02ad.vercel.app/api/gamepasses?userId=1
